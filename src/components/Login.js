@@ -1,9 +1,20 @@
 import React, { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth";
 import Header from "./Header";
+import { addUser } from "../utils/redux/userSlice";
 import { BACKGROUND_IMG } from "../utils/contant";
 import { checkValidData } from "../utils/validate";
+import { auth } from "../utils/firebase";
 
 const Login = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [isSignInForm, setIsSignInForm] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
   const emailRef = useRef(null);
@@ -11,12 +22,69 @@ const Login = () => {
   const nameRef = useRef(null);
 
   const handleSubmitClick = () => {
+    const userCred = {
+      email: emailRef?.current?.value,
+      password: passwordRef?.current?.value,
+      name: nameRef?.current?.value,
+    };
+
     const message = checkValidData(
-      emailRef.current.value,
-      passwordRef.current.value,
-      !isSignInForm ? nameRef.current.value : "not required"
+      userCred.email,
+      userCred.password,
+      !isSignInForm ? userCred.name : "not required"
     );
     setErrorMessage(message);
+
+    if (message) return;
+
+    if (!isSignInForm) {
+      // SignUp Logic
+      createUserWithEmailAndPassword(auth, userCred.email, userCred.password)
+        .then((userCredential) => {
+          // Signed up
+          const user = userCredential.user;
+          updateProfile(auth.currentUser, {
+            displayName: userCred.name,
+            photoURL: "https://example.com/jane-q-user/profile.jpg",
+          })
+            .then(() => {
+              // Profile updated!
+              dispatch(
+                addUser({
+                  uid: auth.currentUser.uid,
+                  email: auth.currentUser.email,
+                  displayName: auth.currentUser.displayName,
+                  photoURL: auth.currentUser.photoURL,
+                })
+              );
+            })
+            .catch((error) => {
+              // An error occurred
+              setErrorMessage(error?.message);
+            });
+          console.log(user);
+          navigate("/browse");
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setErrorMessage(errorCode + "-" + errorMessage);
+        });
+    } else {
+      // SignIn Logic
+      signInWithEmailAndPassword(auth, userCred.email, userCred.password)
+        .then((userCredential) => {
+          // Signed in
+          const user = userCredential.user;
+          console.log(user);
+          navigate("/browse");
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setErrorMessage(errorCode + "-" + errorMessage);
+        });
+    }
   };
 
   const toggleSignInForm = () => {
