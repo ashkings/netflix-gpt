@@ -16,6 +16,9 @@
 - Create Signup User Account
 - Implement Signin User
 - Create redux store with user slice
+- Fetch from TBDM movies
+- Redirect user to browse on login if signed in and vice versa
+- Unsubscribe to the onAuthChange callback
 
 # Features
 

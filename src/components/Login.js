@@ -1,5 +1,4 @@
 import React, { useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import {
   createUserWithEmailAndPassword,
@@ -8,12 +7,11 @@ import {
 } from "firebase/auth";
 import Header from "./Header";
 import { addUser } from "../utils/redux/userSlice";
-import { BACKGROUND_IMG } from "../utils/contant";
+import { BACKGROUND_IMG, USER_AVATAR } from "../utils/contant";
 import { checkValidData } from "../utils/validate";
 import { auth } from "../utils/firebase";
 
 const Login = () => {
-  const navigate = useNavigate();
   const dispatch = useDispatch();
   const [isSignInForm, setIsSignInForm] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -42,10 +40,9 @@ const Login = () => {
       createUserWithEmailAndPassword(auth, userCred.email, userCred.password)
         .then((userCredential) => {
           // Signed up
-          const user = userCredential.user;
           updateProfile(auth.currentUser, {
             displayName: userCred.name,
-            photoURL: "https://example.com/jane-q-user/profile.jpg",
+            photoURL: USER_AVATAR,
           })
             .then(() => {
               // Profile updated!
@@ -62,8 +59,6 @@ const Login = () => {
               // An error occurred
               setErrorMessage(error?.message);
             });
-          console.log(user);
-          navigate("/browse");
         })
         .catch((error) => {
           const errorCode = error.code;
@@ -75,9 +70,6 @@ const Login = () => {
       signInWithEmailAndPassword(auth, userCred.email, userCred.password)
         .then((userCredential) => {
           // Signed in
-          const user = userCredential.user;
-          console.log(user);
-          navigate("/browse");
         })
         .catch((error) => {
           const errorCode = error.code;

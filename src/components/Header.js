@@ -1,18 +1,38 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { signOut } from "firebase/auth";
+import { useSelector, useDispatch } from "react-redux";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { addUser, removeUser } from "../utils/redux/userSlice";
 import { NETFLIX_LOGO } from "../utils/contant";
 import { auth } from "../utils/firebase";
 
 const Header = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const user = useSelector((store) => store.user);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // User is signed in, see docs for a list of available properties
+        const { uid, email, displayName, photoURL } = user;
+        dispatch(addUser({ uid, email, displayName, photoURL }));
+        navigate("/browse");
+      } else {
+        // User is signed out
+        dispatch(removeUser());
+        navigate("/");
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   const handleSignout = () => {
     signOut(auth)
       .then(() => {
         // Sign-out successful.
-        navigate("/");
       })
       .catch((error) => {
         // An error happened.
@@ -25,14 +45,7 @@ const Header = () => {
       <img className="w-52" src={NETFLIX_LOGO} alt="logo" />
       {user && (
         <div className="flex gap-2 p-2 items-center">
-          <img
-            className="h-12 w-12"
-            src={
-              user.photoUrl ||
-              "https://occ-0-3213-3646.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABStlS0MPUGcy6Ovyeia-3ddnnXNb2Lri4P4H4QCFuR_yaGs0umyqHUDOZcOBKF8MFUGHX07txAW70z7wq_S9AKGQ_MixrLQ.png?r=a4b"
-            }
-            alt="user-icon"
-          />
+          <img className="h-12 w-12" src={user.photoURL} alt="user-icon" />
           <button className="font-bold text-white" onClick={handleSignout}>
             Sign out
           </button>
