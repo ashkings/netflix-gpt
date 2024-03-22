@@ -19,6 +19,13 @@
 - Fetch from TBDM movies
 - Redirect user to browse on login if signed in and vice versa
 - Unsubscribe to the onAuthChange callback
+- Regutser TMDB API & create an app & get access token
+- Get data from TMDB API movies list
+- Create hook for now playing movie
+- Create movie slice
+- Update store with movies
+- Update store with trailer
+- Embed youtube video
 
 # Features
 
